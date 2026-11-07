@@ -1,0 +1,55 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>本地文库阅读器</title></head><body>
+<script>
+// This page has an opaque origin and no extension APIs. Only its parent can initialize it.
+window.addEventListener('message', function initialize(event) {
+  if (event.source !== parent || event.data?.type !== 'library-document') return;
+  const { html, runtime, token } = event.data;
+  window.removeEventListener('message', initialize);
+  function bridge(token) {
+    let nextId = 0;
+    const pending = new Map();
+    function request(type, path, done) {
+      const id = ++nextId;
+      if (done) pending.set(id, done);
+      parent.postMessage({ type, path, id, token }, '*');
+    }
+    window.addEventListener('message', event => {
+      if (event.source !== parent || event.data?.token !== token) return;
+      const done = pending.get(event.data.id);
+      if (done) { pending.delete(event.data.id); done(event.data); }
+    });
+    function loadImages() {
+      document.querySelectorAll('img').forEach(img => {
+        const path = img.getAttribute('data-local-src') || img.getAttribute('src');
+        if (!path || /^(blob:|data:)/.test(path) || img.dataset.requested === path) return;
+        img.dataset.requested = path;
+        img.removeAttribute('src');
+        request('library-image', path, result => {
+          if (!img.isConnected || img.dataset.requested !== path) return;
+          if (result.url) img.src = result.url;
+          else { img.alt = '本地图片无法读取'; img.title = result.error; }
+        });
+      });
+    }
+    new MutationObserver(loadImages).observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
+    document.addEventListener('click', event => {
+      if (event.defaultPrevented) return;
+      const link = event.target.closest('a[href]');
+      if (!link) return;
+      const path = link.getAttribute('href');
+      if (!path || path.startsWith('#')) return;
+      event.preventDefault();
+      request('library-link', path);
+    });
+    loadImages();
+  }
+  const script = document.createElement('script');
+  script.textContent = '(' + bridge.toString() + ')(' + JSON.stringify(token) + ');\n' + runtime;
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  doc.body.append(script);
+  document.open();
+  document.write('<!doctype html>' + doc.documentElement.outerHTML);
+  document.close();
+});
+parent.postMessage({ type: 'library-ready' }, '*');
+</script></body></html>

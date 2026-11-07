@@ -1,0 +1,11 @@
+{
+  "baseUrl": "http://localhost:11434/v1",
+  "apiKey": "",
+  "modelName": "your-local-model",
+  "timeoutSec": 30,
+  "concurrencyLimit": 2,
+  "batchLimit": 20,
+  "allowSendImages": false,
+  "sessionOnlyKey": true,
+  "useMock": false
+}

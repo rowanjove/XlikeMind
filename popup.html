@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Reserve the native popup bounds before CSS, IndexedDB or React loads. -->
+    <style>
+      html, body.lm-popup-body {
+        box-sizing: border-box;
+        width: 380px;
+        min-width: 380px;
+        max-width: 380px;
+        height: 600px;
+        margin: 0;
+        background: #f2f6fb;
+        color: #242924;
+        font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+      }
+      html, body.lm-popup-body { overflow: hidden; scrollbar-width: none; }
+      html::-webkit-scrollbar, body.lm-popup-body::-webkit-scrollbar { display: none; }
+      /* html requests the preferred height; body fits Chrome's constrained popup viewport.
+         Using max-height:100vh on html collapses the initial native viewport to 25px. */
+      body.lm-popup-body { position: fixed; inset: 0; height: auto; }
+      body.lm-popup-body #root { height: 100%; min-height: 0; overflow: hidden; }
+      .lm-popup-loading { margin: 0; padding: 24px 16px; font-size: 14px; }
+    </style>
+    <title>XlikeMind</title>
+    <link rel="icon" type="image/png" href="/icons/icon32.png" />
+  </head>
+  <body class="lm-popup-body">
+    <div id="root"><p class="lm-popup-loading" role="status">正在打开文库…</p></div>
+    <script type="module" src="/src/popupMain.tsx"></script>
+  </body>
+</html>
